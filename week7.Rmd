@@ -1,0 +1,95 @@
+---
+title: "My first R notebook"
+author: "DJP"
+date: '2021-01-04'
+output:
+  html_notebook: default
+  pdf_document: default
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+# #############################
+
+ Fallzahlen über Weihnachten // 2020-12-16
+
+ This creates the plot nicely but the font sizes
+ kinda shift around depending on the size of your window.
+ I've gotten it looking nice in R-Studio but I think
+ there is some magic that must be done to get the output
+ PNG to always have the correct font sizes.
+
+```{r}
+library(tidyverse)
+library(lubridate)
+Sys.setlocale("LC_ALL", "de_DE.UTF-8")
+
+```
+
+## Lock the graph start/end regardless of data:
+```{r}
+start_date = ymd("2020-12-01")
+end_date = ymd("2021-05-01")
+
+```
+
+# load CSV from working directory
+```{r}
+
+results = read_csv2('data.csv', col_types = cols(
+  Datum = col_date(format="%d.%m.%y"))
+)
+```
+
+
+# Special floating labels
+```{r}
+
+labels <- tibble(
+  date= c(ymd("2021-01-15"), ymd("2021-02-18"), ymd("2020-12-01")),
+  color=c(    "#00bbee",         "#993399",         "#ff0000"),
+  ypos=c(     3000,               2000,              850),
+  label=c(
+    "Modell 3:\nVermehrte Treffen an Weihnachten und Silvester",
+    "Modell 2:\nVermehrte Treffen an Weihnachten",
+    "Modell 1:\nVerhalten aus dem Dezember\nwird fortgeführt"
+  )
+)
+```
+
+
+# Plot it
+```{r}
+
+results %>%
+  filter(Datum >= start_date & Datum <= end_date) %>%
+  ggplot() +
+    labs(
+      title="Wie entwickeln sich die Fallzahlen über Weihnachten?",
+      subtitle="3 Szenarien im Vergleich",
+      caption="Quelle: TU Berlin, VSP",
+      x="", y="Tägliche Neuinfektionen in Berlin") +
+    theme(legend.position = "none") +
+    geom_hline(aes(yintercept=0), size=17, color="#229955") +
+    geom_point(aes(x=Datum, y=Modell_2), size=0.5, color="#ff0000") +
+    geom_point(aes(x=Datum, y=Modell_3), size=0.5, color="#993399") +
+    geom_point(aes(x=Datum, y=Modell_1), size=0.5, color="#00bbee") +
+    geom_label(data=labels, 
+               mapping=aes(x = date, y = ypos, label = label, color=color), 
+               fill="white", size=3, vjust = "top", hjust="left") +
+    geom_text(mapping=aes(x = end_date-days(20), y = 320), 
+              label = "7-Tage-Inzidenz: 50", 
+              color="#229955", size=2.5, hjust="left", vjust="bottom") +
+    geom_text(mapping=aes(x = ymd("2021-01-01"), y = 0), 
+            label = "2021", vjust="top",
+            color="#444444", size=3, hjust="center") +
+    scale_colour_manual(values=c( "#ff0000", "#993399","#00bbee","white" ))
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
